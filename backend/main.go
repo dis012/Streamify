@@ -12,13 +12,18 @@ import (
 )
 
 func main() {
-	const port = "8080"
+	const port = ":8080"
 
 	godotenv.Load()
 
 	dbURL := os.Getenv("DB_URL")
 	if dbURL == "" {
 		log.Fatal("DB_URL is required")
+	}
+
+	secret := os.Getenv("SECRET")
+	if secret == "" {
+		log.Fatal("Secret string required for creating JWT tokens")
 	}
 
 	db, err := sql.Open("postgres", dbURL)
@@ -30,6 +35,7 @@ func main() {
 
 	apiCnf := &ApiConfig{
 		dbQueries: dbQueries,
+		secret:    secret,
 	}
 
 	mux := http.NewServeMux()

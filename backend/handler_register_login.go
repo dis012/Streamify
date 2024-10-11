@@ -11,7 +11,7 @@ import (
 type User struct {
 	Id       int    `json:"id"`
 	Email    string `json:"email"`
-	Password string `json:"password"`
+	Password string `json:"-"`
 }
 
 func (a *ApiConfig) RegisterUser(w http.ResponseWriter, r *http.Request) {
@@ -20,7 +20,12 @@ func (a *ApiConfig) RegisterUser(w http.ResponseWriter, r *http.Request) {
 		It accepts user's email and password, and returns a JSON response.
 		It saves the user's email and hashed password to the database.
 	*/
-	var user User
+	type param struct {
+		Email    string `json:"email"`
+		Password string `json:"password"`
+	}
+
+	var user param
 
 	err := json.NewDecoder(r.Body).Decode(&user)
 	if err != nil {

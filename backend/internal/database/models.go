@@ -5,8 +5,18 @@
 package database
 
 import (
+	"database/sql"
 	"time"
 )
+
+type RefreshToken struct {
+	Token     string
+	CreatedAt time.Time
+	UpdatedAt time.Time
+	ExpiresAt time.Time
+	RevokedAt sql.NullTime
+	UserID    int32
+}
 
 type User struct {
 	ID             int32
