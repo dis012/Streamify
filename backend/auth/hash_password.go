@@ -53,7 +53,7 @@ func HashPassword(password string) (string, error) {
 	return string(hashed_password), err
 }
 
-func compareSavedAndInputPassword(password, hashed_password string) bool {
+func CompareSavedAndInputPassword(password, hashed_password string) bool {
 	err := bcrypt.CompareHashAndPassword([]byte(hashed_password), []byte(password))
 	return err == nil
 }

@@ -46,6 +46,7 @@ func main() {
 	}
 
 	mux.HandleFunc("POST /api/register", apiCnf.RegisterUser)
+	mux.HandleFunc("POST /api/login", apiCnf.LoginUser)
 
 	log.Printf("Server listening on port %s", port)
 	log.Fatal(server.ListenAndServe())
