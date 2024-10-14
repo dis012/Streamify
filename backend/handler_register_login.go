@@ -129,3 +129,68 @@ func (a *ApiConfig) LoginUser(w http.ResponseWriter, r *http.Request) {
 		AccessToken:  accesToken,
 	})
 }
+
+func (a *ApiConfig) RefreshAccessToken(w http.ResponseWriter, r *http.Request) {
+	/*
+		Handler function that will refresh the access token.
+		It accepts the refresh token, checks if refresh token exists
+		and if its valid and then returns new access token.
+	*/
+	bearrerToken, err := auth.GetBearrerOfTheToken(r.Header)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	refreshToken, err := a.dbQueries.GetRefreshTokenByToken(r.Context(), bearrerToken)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	if time.Now().After(refreshToken.ExpiresAt) {
+		http.Error(w, "Refresh token expired", http.StatusUnauthorized)
+		return
+	}
+
+	if refreshToken.RevokedAt.Valid {
+		http.Error(w, "Refresh token revoked", http.StatusUnauthorized)
+		return
+	}
+
+	token, err := auth.MakeAccessToken(int(refreshToken.UserID), a.secret, 1*time.Hour)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	RespondWithJson(w, http.StatusOK, map[string]string{
+		"access_token": token,
+	})
+}
+
+func (a *ApiConfig) RevokeRefreshToken(w http.ResponseWriter, r *http.Request) {
+	/*
+		Handler function that will revoke the refresh token.
+	*/
+
+	bearrerToken, err := auth.GetBearrerOfTheToken(r.Header)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	refreshToken, err := a.dbQueries.GetRefreshTokenByToken(r.Context(), bearrerToken)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	err = a.dbQueries.RevokeRefreshToken(r.Context(), refreshToken.Token)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	RespondWithJson(w, http.StatusNoContent, interface{}(nil))
+}

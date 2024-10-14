@@ -47,6 +47,8 @@ func main() {
 
 	mux.HandleFunc("POST /api/register", apiCnf.RegisterUser)
 	mux.HandleFunc("POST /api/login", apiCnf.LoginUser)
+	mux.HandleFunc("POST /api/refresh", apiCnf.RefreshAccessToken)
+	mux.HandleFunc("POST /api/revoke", apiCnf.RevokeRefreshToken)
 
 	log.Printf("Server listening on port %s", port)
 	log.Fatal(server.ListenAndServe())
