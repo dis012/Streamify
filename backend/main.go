@@ -26,6 +26,11 @@ func main() {
 		log.Fatal("Secret string required for creating JWT tokens")
 	}
 
+	dataPath := os.Getenv("DATA_PATH")
+	if dataPath == "" {
+		log.Fatal("Data path is required")
+	}
+
 	db, err := sql.Open("postgres", dbURL)
 	if err != nil {
 		log.Fatalf("Error opening database connection: %v", err)
@@ -45,6 +50,9 @@ func main() {
 		Handler: mux,
 	}
 
+	fileServer := http.StripPrefix("/data", http.FileServer(http.Dir(dataPath)))
+
+	mux.Handle("/data/", fileServer)
 	mux.HandleFunc("POST /api/register", apiCnf.RegisterUser)
 	mux.HandleFunc("POST /api/login", apiCnf.LoginUser)
 	mux.HandleFunc("POST /api/refresh", apiCnf.RefreshAccessToken)
