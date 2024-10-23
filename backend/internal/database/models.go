@@ -18,6 +18,24 @@ type RefreshToken struct {
 	UserID    int32
 }
 
+type Series struct {
+	ID          int32
+	Title       string
+	Description sql.NullString
+	UploadedAt  time.Time
+	UserID      int32
+}
+
+type SeriesEpisode struct {
+	ID         int32
+	Title      string
+	Season     int32
+	Episode    int32
+	UploadedAt time.Time
+	UploadedBy int32
+	SeriesID   int32
+}
+
 type User struct {
 	ID             int32
 	Email          string
