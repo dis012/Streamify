@@ -32,9 +32,12 @@ func (a *ApiConfig) RegisterUser(w http.ResponseWriter, r *http.Request) {
 	type param struct {
 		Email    string `json:"email"`
 		Password string `json:"password"`
+		Secret   string `json:"secret"`
 	}
 
 	var user param
+
+	isAdmin := false
 
 	err := json.NewDecoder(r.Body).Decode(&user)
 	if err != nil {
@@ -48,9 +51,14 @@ func (a *ApiConfig) RegisterUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if user.Secret == a.admin_secret {
+		isAdmin = true
+	}
+
 	newUser, err := a.dbQueries.RegisterUser(r.Context(), database.RegisterUserParams{
 		Email:          user.Email,
 		HashedPassword: hashed_password,
+		IsAdmin:        isAdmin,
 	})
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)

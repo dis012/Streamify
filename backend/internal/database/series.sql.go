@@ -115,21 +115,20 @@ func (q *Queries) GetAllSeries(ctx context.Context) ([]GetAllSeriesRow, error) {
 }
 
 const getSeriesByTitle = `-- name: GetSeriesByTitle :one
-SELECT id, title, description
+SELECT id, description
 FROM series
 WHERE title = $1
 `
 
 type GetSeriesByTitleRow struct {
 	ID          int32
-	Title       string
 	Description sql.NullString
 }
 
 func (q *Queries) GetSeriesByTitle(ctx context.Context, title string) (GetSeriesByTitleRow, error) {
 	row := q.db.QueryRowContext(ctx, getSeriesByTitle, title)
 	var i GetSeriesByTitleRow
-	err := row.Scan(&i.ID, &i.Title, &i.Description)
+	err := row.Scan(&i.ID, &i.Description)
 	return i, err
 }
 
@@ -157,10 +156,9 @@ func (q *Queries) UploadEpisode(ctx context.Context, arg UploadEpisodeParams) er
 	return err
 }
 
-const uploadSeries = `-- name: UploadSeries :one
+const uploadSeries = `-- name: UploadSeries :exec
 INSERT INTO series (title, description, uploaded_at, user_id)
 VALUES ($1, $2, NOW(), $3)
-RETURNING id
 `
 
 type UploadSeriesParams struct {
@@ -169,9 +167,7 @@ type UploadSeriesParams struct {
 	UserID      int32
 }
 
-func (q *Queries) UploadSeries(ctx context.Context, arg UploadSeriesParams) (int32, error) {
-	row := q.db.QueryRowContext(ctx, uploadSeries, arg.Title, arg.Description, arg.UserID)
-	var id int32
-	err := row.Scan(&id)
-	return id, err
+func (q *Queries) UploadSeries(ctx context.Context, arg UploadSeriesParams) error {
+	_, err := q.db.ExecContext(ctx, uploadSeries, arg.Title, arg.Description, arg.UserID)
+	return err
 }

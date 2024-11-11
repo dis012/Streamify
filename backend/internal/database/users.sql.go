@@ -10,7 +10,7 @@ import (
 )
 
 const getUserByEmail = `-- name: GetUserByEmail :one
-SELECT id, email, hashed_password, created_at, updated_at FROM users WHERE email = $1
+SELECT id, email, hashed_password, created_at, updated_at, is_admin FROM users WHERE email = $1
 `
 
 func (q *Queries) GetUserByEmail(ctx context.Context, email string) (User, error) {
@@ -22,23 +22,25 @@ func (q *Queries) GetUserByEmail(ctx context.Context, email string) (User, error
 		&i.HashedPassword,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.IsAdmin,
 	)
 	return i, err
 }
 
 const registerUser = `-- name: RegisterUser :one
-INSERT INTO users (email, hashed_password, created_at, updated_at)
-VALUES ($1, $2, NOW(), NOW())
-RETURNING id, email, hashed_password, created_at, updated_at
+INSERT INTO users (email, hashed_password, is_admin, created_at, updated_at)
+VALUES ($1, $2, $3, NOW(), NOW())
+RETURNING id, email, hashed_password, created_at, updated_at, is_admin
 `
 
 type RegisterUserParams struct {
 	Email          string
 	HashedPassword string
+	IsAdmin        bool
 }
 
 func (q *Queries) RegisterUser(ctx context.Context, arg RegisterUserParams) (User, error) {
-	row := q.db.QueryRowContext(ctx, registerUser, arg.Email, arg.HashedPassword)
+	row := q.db.QueryRowContext(ctx, registerUser, arg.Email, arg.HashedPassword, arg.IsAdmin)
 	var i User
 	err := row.Scan(
 		&i.ID,
@@ -46,6 +48,7 @@ func (q *Queries) RegisterUser(ctx context.Context, arg RegisterUserParams) (Use
 		&i.HashedPassword,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.IsAdmin,
 	)
 	return i, err
 }

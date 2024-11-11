@@ -5,6 +5,9 @@ import (
 )
 
 type ApiConfig struct {
-	dbQueries *database.Queries
-	secret    string
+	dbQueries     *database.Queries
+	secret        string
+	admin_secret  string
+	maxUploadSize int64
+	data_path     string
 }

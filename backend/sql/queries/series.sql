@@ -1,7 +1,6 @@
--- name: UploadSeries :one
+-- name: UploadSeries :exec
 INSERT INTO series (title, description, uploaded_at, user_id)
-VALUES ($1, $2, NOW(), $3)
-RETURNING id;
+VALUES ($1, $2, NOW(), $3);
 
 -- name: UploadEpisode :exec
 INSERT INTO series_episode (title, season, episode, uploaded_at, uploaded_by, series_id)
@@ -12,7 +11,7 @@ SELECT id, title, description
 FROM series;
 
 -- name: GetSeriesByTitle :one
-SELECT id, title, description
+SELECT id, description
 FROM series
 WHERE title = $1;
 
