@@ -9,6 +9,14 @@ import (
 	"time"
 )
 
+type Movie struct {
+	ID          int32
+	Title       string
+	Description sql.NullString
+	UploadedAt  time.Time
+	UserID      int32
+}
+
 type RefreshToken struct {
 	Token     string
 	CreatedAt time.Time

@@ -27,6 +27,7 @@ func (a *ApiConfig) UploadSeries(w http.ResponseWriter, r *http.Request) {
 	/*
 		Handler for uploading a series
 		It acceps series Title and description and saves it to the database
+		After that you can call UploadEpisode to upload episodes for the series
 	*/
 
 	type param struct {
