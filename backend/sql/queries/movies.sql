@@ -10,3 +10,18 @@ FROM movies;
 SELECT id, description
 FROM movies
 WHERE title = $1;
+
+-- name: GetMovieById :one
+SELECT id
+FROM movies
+WHERE title = $1;
+
+-- name: GetMoviePath :one
+SELECT movie_path
+FROM movies
+WHERE id = $1;
+
+-- name: AddMoviePath :exec
+UPDATE movies
+SET movie_path = $2
+WHERE id = $1;

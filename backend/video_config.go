@@ -209,6 +209,18 @@ func (a *ApiConfig) UploadEpisode(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
+		err = a.dbQueries.AddSeriesPath(r.Context(), database.AddSeriesPathParams{
+			ID: seriesId.ID,
+			SeriesPath: sql.NullString{
+				String: filePath,
+			},
+		})
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			log.Println("Error adding series path:", err)
+			return
+		}
+
 		// Save the file
 		outFile, err := os.Create(filePath)
 		if err != nil {
@@ -229,4 +241,35 @@ func (a *ApiConfig) UploadEpisode(w http.ResponseWriter, r *http.Request) {
 		Season:  episode.Season,
 		Episode: episode.Episodes,
 	})
+}
+
+func (a *ApiConfig) GetSerieForStream(w http.ResponseWriter, r *http.Request) {
+	/*
+		Method used to get the series and episodes for streaming
+	*/
+	type param struct {
+		Title   string `json:"title"`
+		Season  int32  `json:"season"`
+		Episode int32  `json:"episode"`
+	}
+
+	var serie param
+
+	err := json.NewDecoder(r.Body).Decode(&serie)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	serieId, err := a.dbQueries.GetEpisode(r.Context(), database.GetEpisodeParams{
+		Title:   serie.Title,
+		Season:  serie.Season,
+		Episode: serie.Episode,
+	})
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusNotFound)
+		return
+	}
+
+	RespondWithJson(w, http.StatusOK, serieId)
 }

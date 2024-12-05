@@ -78,7 +78,9 @@ func main() {
 	mux.HandleFunc("POST /api/revoke", apiCnf.RevokeRefreshToken)
 	mux.HandleFunc("POST /api/uploadseries", apiCnf.UploadSeries)
 	mux.HandleFunc("POST /api/uploadepisode", apiCnf.UploadEpisode)
-	mux.HandleFunc(("POST /api/uploadmovie"), apiCnf.UploadMovie)
+	mux.HandleFunc("POST /api/uploadmovie", apiCnf.UploadMovie)
+	mux.Handle("/api/stream/series/{episode_id}", apiCnf.StreamEpisodeRequestMiddleware())
+	mux.Handle("/api/stream/movie/{movie_id}", apiCnf.StreamMovieRequestMiddleware())
 
 	log.Printf("Server listening on port %s", port)
 	log.Fatal(server.ListenAndServe())

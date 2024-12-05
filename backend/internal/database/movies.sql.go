@@ -10,6 +10,22 @@ import (
 	"database/sql"
 )
 
+const addMoviePath = `-- name: AddMoviePath :exec
+UPDATE movies
+SET movie_path = $2
+WHERE id = $1
+`
+
+type AddMoviePathParams struct {
+	ID        int32
+	MoviePath sql.NullString
+}
+
+func (q *Queries) AddMoviePath(ctx context.Context, arg AddMoviePathParams) error {
+	_, err := q.db.ExecContext(ctx, addMoviePath, arg.ID, arg.MoviePath)
+	return err
+}
+
 const getAllMovies = `-- name: GetAllMovies :many
 SELECT id, title, description
 FROM movies
@@ -44,6 +60,19 @@ func (q *Queries) GetAllMovies(ctx context.Context) ([]GetAllMoviesRow, error) {
 	return items, nil
 }
 
+const getMovieById = `-- name: GetMovieById :one
+SELECT id
+FROM movies
+WHERE title = $1
+`
+
+func (q *Queries) GetMovieById(ctx context.Context, title string) (int32, error) {
+	row := q.db.QueryRowContext(ctx, getMovieById, title)
+	var id int32
+	err := row.Scan(&id)
+	return id, err
+}
+
 const getMovieByTitle = `-- name: GetMovieByTitle :one
 SELECT id, description
 FROM movies
@@ -60,6 +89,19 @@ func (q *Queries) GetMovieByTitle(ctx context.Context, title string) (GetMovieBy
 	var i GetMovieByTitleRow
 	err := row.Scan(&i.ID, &i.Description)
 	return i, err
+}
+
+const getMoviePath = `-- name: GetMoviePath :one
+SELECT movie_path
+FROM movies
+WHERE id = $1
+`
+
+func (q *Queries) GetMoviePath(ctx context.Context, id int32) (sql.NullString, error) {
+	row := q.db.QueryRowContext(ctx, getMoviePath, id)
+	var movie_path sql.NullString
+	err := row.Scan(&movie_path)
+	return movie_path, err
 }
 
 const uploadMovie = `-- name: UploadMovie :exec

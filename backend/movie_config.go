@@ -107,6 +107,20 @@ func (a *ApiConfig) UploadMovie(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	movieId, err := a.dbQueries.GetMovieById(r.Context(), movie.Title)
+
+	err = a.dbQueries.AddMoviePath(r.Context(), database.AddMoviePathParams{
+		ID: movieId,
+		MoviePath: sql.NullString{
+			String: filePath,
+		},
+	})
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		log.Println("Error adding movie path:", err)
+		return
+	}
+
 	// Save the file
 	outFile, err := os.Create(filePath)
 	if err != nil {

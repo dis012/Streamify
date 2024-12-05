@@ -15,6 +15,7 @@ type Movie struct {
 	Description sql.NullString
 	UploadedAt  time.Time
 	UserID      int32
+	MoviePath   sql.NullString
 }
 
 type RefreshToken struct {
@@ -42,6 +43,7 @@ type SeriesEpisode struct {
 	UploadedAt time.Time
 	UploadedBy int32
 	SeriesID   int32
+	SeriesPath sql.NullString
 }
 
 type User struct {

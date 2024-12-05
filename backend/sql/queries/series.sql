@@ -26,3 +26,18 @@ SELECT title, episode
 FROM series_episode
 WHERE series_id = $1 AND season = $2
 ORDER BY episode ASC;
+
+-- name: GetEpisode :one
+SELECT id
+FROM series_episode
+WHERE title = $1 AND season = $2 AND episode = $3;
+
+-- name: AddSeriesPath :exec
+UPDATE series_episode
+SET series_path = $1
+WHERE id = $2;
+
+-- name: GetSeriesPath :one
+SELECT series_path
+FROM series_episode
+WHERE id = $1;

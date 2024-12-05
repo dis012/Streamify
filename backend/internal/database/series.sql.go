@@ -10,6 +10,22 @@ import (
 	"database/sql"
 )
 
+const addSeriesPath = `-- name: AddSeriesPath :exec
+UPDATE series_episode
+SET series_path = $1
+WHERE id = $2
+`
+
+type AddSeriesPathParams struct {
+	SeriesPath sql.NullString
+	ID         int32
+}
+
+func (q *Queries) AddSeriesPath(ctx context.Context, arg AddSeriesPathParams) error {
+	_, err := q.db.ExecContext(ctx, addSeriesPath, arg.SeriesPath, arg.ID)
+	return err
+}
+
 const getAllSeasonEpisodes = `-- name: GetAllSeasonEpisodes :many
 SELECT title, episode 
 FROM series_episode
@@ -114,6 +130,25 @@ func (q *Queries) GetAllSeries(ctx context.Context) ([]GetAllSeriesRow, error) {
 	return items, nil
 }
 
+const getEpisode = `-- name: GetEpisode :one
+SELECT id
+FROM series_episode
+WHERE title = $1 AND season = $2 AND episode = $3
+`
+
+type GetEpisodeParams struct {
+	Title   string
+	Season  int32
+	Episode int32
+}
+
+func (q *Queries) GetEpisode(ctx context.Context, arg GetEpisodeParams) (int32, error) {
+	row := q.db.QueryRowContext(ctx, getEpisode, arg.Title, arg.Season, arg.Episode)
+	var id int32
+	err := row.Scan(&id)
+	return id, err
+}
+
 const getSeriesByTitle = `-- name: GetSeriesByTitle :one
 SELECT id, description
 FROM series
@@ -130,6 +165,19 @@ func (q *Queries) GetSeriesByTitle(ctx context.Context, title string) (GetSeries
 	var i GetSeriesByTitleRow
 	err := row.Scan(&i.ID, &i.Description)
 	return i, err
+}
+
+const getSeriesPath = `-- name: GetSeriesPath :one
+SELECT series_path
+FROM series_episode
+WHERE id = $1
+`
+
+func (q *Queries) GetSeriesPath(ctx context.Context, id int32) (sql.NullString, error) {
+	row := q.db.QueryRowContext(ctx, getSeriesPath, id)
+	var series_path sql.NullString
+	err := row.Scan(&series_path)
+	return series_path, err
 }
 
 const uploadEpisode = `-- name: UploadEpisode :exec
