@@ -1,7 +1,9 @@
 package main
 
 import (
+	"log"
 	"net/http"
+	"os"
 	"strconv"
 )
 
@@ -20,21 +22,26 @@ func (a *ApiConfig) StreamEpisodeRequestMiddleware() http.HandlerFunc {
 
 		// Get series path
 		seriesPathResult, err := a.dbQueries.GetSeriesPath(r.Context(), int32(seriesID))
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
-		if !seriesPathResult.Valid {
-			http.Error(w, "Invalid series path", http.StatusInternalServerError)
+		if err != nil || !seriesPathResult.Valid {
+			http.Error(w, "Series not found", http.StatusNotFound)
 			return
 		}
 		seriesPath := seriesPathResult.String
 
-		// Add path to the file server
-		fileServer := http.StripPrefix("/api/stream/series/{episode_id}", http.FileServer(http.Dir(seriesPath)))
+		fileInfo, err := os.Stat(seriesPath)
+		if err != nil {
+			http.Error(w, "Error accessing series path", http.StatusInternalServerError)
+			log.Println("Error accessing series path:", err)
+			return
+		}
 
-		// Serve the file
-		fileServer.ServeHTTP(w, r)
+		if fileInfo.IsDir() {
+			// Serve the directory using http.FileServer
+			http.StripPrefix("/api/stream/series/{episode_id}", http.FileServer(http.Dir(seriesPath))).ServeHTTP(w, r)
+		} else {
+			// Serve the file directly
+			http.ServeFile(w, r, seriesPath)
+		}
 	}
 }
 
@@ -53,20 +60,25 @@ func (a *ApiConfig) StreamMovieRequestMiddleware() http.HandlerFunc {
 
 		// Get series path
 		moviePathResult, err := a.dbQueries.GetMoviePath(r.Context(), int32(movieID))
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
-		if !moviePathResult.Valid {
-			http.Error(w, "Invalid series path", http.StatusInternalServerError)
+		if err != nil || !moviePathResult.Valid {
+			http.Error(w, "Series not found", http.StatusNotFound)
 			return
 		}
 		moviePath := moviePathResult.String
 
-		// Add path to the file server
-		fileServer := http.StripPrefix("/api/stream/movie/{movie_id}", http.FileServer(http.Dir(moviePath)))
+		fileInfo, err := os.Stat(moviePath)
+		if err != nil {
+			http.Error(w, "Error accessing series path", http.StatusInternalServerError)
+			log.Println("Error accessing series path:", err)
+			return
+		}
 
-		// Serve the file
-		fileServer.ServeHTTP(w, r)
+		if fileInfo.IsDir() {
+			// Serve the directory using http.FileServer
+			http.StripPrefix("/api/stream/movie/{movie_id}", http.FileServer(http.Dir(moviePath))).ServeHTTP(w, r)
+		} else {
+			// Serve the file directly
+			http.ServeFile(w, r, moviePath)
+		}
 	}
 }

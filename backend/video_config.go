@@ -210,10 +210,10 @@ func (a *ApiConfig) UploadEpisode(w http.ResponseWriter, r *http.Request) {
 		}
 
 		err = a.dbQueries.AddSeriesPath(r.Context(), database.AddSeriesPathParams{
-			ID: seriesId.ID,
 			SeriesPath: sql.NullString{
 				String: filePath,
 			},
+			ID: seriesId.ID,
 		})
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
